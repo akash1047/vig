@@ -26,6 +26,10 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibC();
 
+    const glfw = b.addModule("glfw", .{ .source_file = .{ .path = "src/glfw/glfw.zig" } });
+
+    exe.addModule("glfw", glfw);
+
     // link vulkan and glfw from .env file
 
     if (std.fs.cwd().openFile(".env", .{})) |env| {
