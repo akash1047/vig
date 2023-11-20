@@ -16,9 +16,9 @@ pub const ClientApi = enum(c_int) {
 };
 
 pub fn resizable(opt: bool) void {
-    ffi.glfwWindowHint(.Resizable, @intCast(opt));
+    ffi.glfwWindowHint(@intFromEnum(Hints.Resizable), @intFromBool(opt));
 }
 
 pub fn clientApi(api: ClientApi) void {
-    ffi.glfwWindowHint(.ClientApi, api);
+    ffi.glfwWindowHint(@intFromEnum(Hints.ClientApi), @intFromEnum(api));
 }

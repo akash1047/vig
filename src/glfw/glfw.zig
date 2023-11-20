@@ -1,8 +1,8 @@
 pub const GlfwError = @import("error.zig").GlfwError;
 pub const ffi = @import("ffi.zig");
 
-pub fn Glfwinit() GlfwError!void {
-    if (ffi.glfwInit() != 1) return GlfwError.PlatformError;
+pub fn init() GlfwError!void {
+    if (ffi.glfwInit() != 1) return GlfwError.GlfwPlatformError;
 }
 
 pub fn terminate() void {
