@@ -25,8 +25,39 @@ pub fn build(b: *std.Build) void {
     });
 
     exe.linkLibC();
-    exe.linkSystemLibrary("vulkan");
-    exe.linkSystemLibrary("glfw");
+
+    // link vulkan and glfw from .env file
+
+    if (std.fs.cwd().openFile(".env", .{})) |env| {
+        defer env.close();
+
+        var br = std.io.bufferedReader(env.reader());
+        var reader = br.reader();
+
+        var buffer: [1024]u8 = undefined;
+
+        while (reader.readUntilDelimiterOrEof(buffer[0..], '\n')) |stream| {
+            const input = stream orelse break;
+            const pair: [2][]const u8 = for (input, 0..) |ch, i| {
+                if (ch == '=') break [2][]const u8{ input[0..i], input[i + 1 ..] };
+            } else continue;
+
+            if (std.mem.eql(u8, pair[0], "VULKAN_LIB_DIR") or std.mem.eql(u8, pair[0], "GLFW_LIB_DIR")) {
+                exe.addLibraryPath(.{ .path = pair[1] });
+            } else if (std.mem.eql(u8, pair[0], "VULKAN_LIB_NAME") or std.mem.eql(u8, pair[0], "GLFW_LIB_NAME")) {
+                exe.linkSystemLibrary(pair[1]);
+            } else if (std.mem.eql(u8, pair[0], "GLFW_LIB_PATH")) {
+                b.installBinFile(pair[1], "glfw3.dll");
+            } else if (std.mem.eql(u8, pair[0], "GLFW_INCLUDE_DIR") or std.mem.eql(u8, pair[0], "VULKAN_INCLUDE_DIR")) {
+                exe.addIncludePath(.{ .path = pair[1] });
+            }
+        } else |_| {}
+    } else |err| switch (err) {
+        else => {
+            exe.linkSystemLibrary("vulkan");
+            exe.linkSystemLibrary("glfw");
+        },
+    }
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
